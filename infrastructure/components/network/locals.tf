@@ -19,8 +19,8 @@ locals {
     Environment        = var.environment
     Component          = var.component
     Department         = "digital-data-and-technology"
-    "Service Line"     = "somerset"
-    "Business Service" = "linked-data-platform"
+    "Service Line"     = "gms"
+    "Business Service" = "community-cloud"
   }
 
   aws_account_level_iam_id = local.aws_account_level_id

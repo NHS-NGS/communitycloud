@@ -2,7 +2,7 @@
 
 ## General
 
-The account component is a top-level module that defines AWS account-level configuration which must be established before other components can be deployed. It does not contain Somerset environment-specific settings, but instead manages prerequisites and shared resources required prior to provisioning environment-related infrastructure.
+The account component is a top-level module that defines AWS account-level configuration which must be established before other components can be deployed. It does not contain GMS environment-specific settings, but instead manages prerequisites and shared resources required prior to provisioning environment-related infrastructure.
 
 ## Terraform docs
 <!-- BEGIN_TF_DOCS -->

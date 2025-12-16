@@ -1,7 +1,7 @@
 # _TEMPLATE
 
 ## General
-This is a template component that should be used to create Somerset specific components going forward and updated everytime there are fundamental changes are made that all components should implement.
+This is a template component that should be used to create GMS specific components going forward and updated everytime there are fundamental changes are made that all components should implement.
 
 ## Terraform docs
 <!-- BEGIN_TF_DOCS -->

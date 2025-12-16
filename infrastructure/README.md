@@ -1,4 +1,4 @@
-# somerset-ldp-infrastructure
+# gms-infrastructure
 
 ## Terraform Scaffold
 
@@ -56,7 +56,7 @@ bin/terraform.sh \
 
 The example below shows a command that runs Terraform for the Development environment and the Account component:
 ```bash
-bin/terraform.sh -t -r eu-west-2 -p somerset -e dev -c account -a plan/apply
+bin/terraform.sh -t -r eu-west-2 -p gms -e dev -c account -a plan/apply
 ```
 ## Git hooks
 

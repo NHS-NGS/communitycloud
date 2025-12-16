@@ -11,14 +11,14 @@
 
 #     data_resource {
 #       type = "AWS::S3::Object"
-#       values = ["arn:aws:s3:::somerset-647582858282-dev-cohort/",
-#       "arn:aws:s3:::somerset-647582858282-dev-cohort-upload/"]
+#       values = ["arn:aws:s3:::gms-008455859106-dev-cohort/",
+#       "arn:aws:s3:::gms-008455859106-dev-cohort-upload/"]
 #     }
 #   }
 # }
 
 # resource "aws_s3_bucket" "s3_operations" {
-#   bucket        = "somerset-647582858282-dev-trail"
+#   bucket        = "gms-008455859106-dev-trail"
 #   force_destroy = true
 # }
 

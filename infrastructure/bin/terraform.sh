@@ -147,7 +147,7 @@ fi;
 eval set -- "${ARGS}";
 
 ### Project-related variables ###
-declare project_bucket='nhs-647582858282-somerset-terraform';
+declare project_bucket='gms-cloudcommunity-terraform';
 declare project_dynamodb_table='terraform_state'
 ### End of Project-related variables ###
 
@@ -345,7 +345,7 @@ fi;
 
 readonly dynamodb_table="${project_bucket}"
 
-# # Set dynamodb table name as per Somerset standards.
+# # Set dynamodb table name as per GMS standards.
 # if [ "${environment}" = "sbx" ]; then
 #   readonly dynamodb_table="${bucket}";
 # else
