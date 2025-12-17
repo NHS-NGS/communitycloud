@@ -1,13 +1,16 @@
 name: Deploy to AWS
 
 on:
+  pull_request_target:
+    branches: 
+      - main
   workflow_dispatch:
     inputs:      
-      environment:
+      environment: 
         description: "Deployment environment"
         required: true
         default: "dev"
-        type: choice
+        type:  choice
         options:
           - dev
 
