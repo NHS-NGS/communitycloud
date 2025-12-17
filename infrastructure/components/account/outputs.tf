@@ -3,6 +3,16 @@ output "__AWS_ACCOUNT_LEVEL_IDENTIFIER__" {
   description = "Variable which contains project-environment-component string to include in resource names."
 }
 
+output "lambda_code_s3_bucket_name" {
+  value       = module.lambda_code_s3_bucket.s3_bucket_id
+  description = "Name of the S3 bucket for Lambda code"
+}
+
+output "lambda_code_s3_bucket_arn" {
+  value       = module.lambda_code_s3_bucket.s3_bucket_arn
+  description = "ARN of the S3 bucket for Lambda code"
+}
+
 # output "s3_access_logs_s3_bucket_id" {
 #   value       = module.s3_access_logs_s3_bucket.s3_bucket_id
 #   description = "ID of the S3 bucket for S3 access logs"
