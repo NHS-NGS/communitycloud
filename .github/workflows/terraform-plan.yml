@@ -43,13 +43,6 @@ jobs:
 
       - name: Run setup script
         run: bash .github/workflows/scripts/tf-runner-prep.sh
-      - name: Run Terraform plan
-        env:
-          TF_ACTION: plan
-          ENVIRONMENT: ${{ github.event.inputs.environment }}
-          COMPONENT: ${{ github.event.inputs.component }}
-        run: bash .github/workflows/scripts/tf-run.sh
-
       - name: Terraform Plan
         working-directory: infrastructure
         env:
