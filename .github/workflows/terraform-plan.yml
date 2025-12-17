@@ -1,0 +1,52 @@
+name: Terraform Plan
+
+on:
+  workflow_dispatch:
+    inputs:
+      component:
+        description: "Terraform component to plan"
+        required: true
+        type: choice
+        options:
+          - account
+          - network
+          - vcf_etl
+      environment:
+        description: "Environment to plan"
+        required: true
+        default: "dev"
+        type: choice
+        options:
+          - dev
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  terraform-plan:
+    runs-on: ubuntu-latest
+    environment: dev
+
+    env:
+      COMPONENT: ${{ github.event.inputs.component }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/gms-dev-account-github-actions
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Terraform Plan
+        working-directory: infrastructure
+        run: |
+          bash bin/terraform.sh \
+            -a plan \
+            -r ${{ secrets.AWS_REGION }} \
+            -p ${{ secrets.PROJECT }} \
+            -e ${{ secrets.ENVIRONMENT }} \
+            -c ${{ env.COMPONENT }}
