@@ -49,4 +49,4 @@ jobs:
           TF_ACTION: plan
           ENVIRONMENT: ${{ github.event.inputs.environment }}
           COMPONENT: ${{ github.event.inputs.component }}
-        run: bash .github/workflows/scripts/tf-run.sh
+        run: bash ../.github/workflows/scripts/tf-run.sh
