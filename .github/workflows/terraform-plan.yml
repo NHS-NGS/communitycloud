@@ -30,6 +30,7 @@ jobs:
 
     env:
       COMPONENT: ${{ github.event.inputs.component }}
+      AWS_GLOBAL_LEVEL_ID: ${{ vars.AWS_GLOBAL_LEVEL_ID }}
 
     steps:
       - name: Checkout
@@ -51,3 +52,7 @@ jobs:
           COMPONENT: ${{ github.event.inputs.component }}
           PROJECT: ${{ vars.PROJECT }}
         run: bash ../.github/workflows/scripts/tf-run.sh
+      - name: Upload VCF files to raw variants bucket
+        run: |
+            aws s3 sync test-data/vcf \
+              s3://gms-raw-variants/vcf
