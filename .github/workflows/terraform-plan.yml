@@ -26,7 +26,7 @@ permissions:
 jobs:
   terraform-plan:
     runs-on: ubuntu-latest
-    environment: dev
+    environment: ${{ github.event.inputs.environment }}
 
     env:
       COMPONENT: ${{ github.event.inputs.component }}
@@ -47,6 +47,6 @@ jobs:
           bash bin/terraform.sh \
             -a plan \
             -r ${{ secrets.AWS_REGION }} \
-            -p ${{ secrets.PROJECT }} \
-            -e ${{ secrets.ENVIRONMENT }} \
-            -c ${{ env.COMPONENT }}
+            -p ${{ vars.PROJECT }} \
+            -e ${{ github.event.inputs.environment }} \
+            -c ${{ github.event.inputs.component }}
