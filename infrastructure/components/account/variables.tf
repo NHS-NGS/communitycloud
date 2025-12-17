@@ -53,3 +53,7 @@ variable "enable_cloudtrail_cohort_logging" {
   type        = bool
   default     = true
 }
+variable "github_repository" {
+  description = "GitHub repository in format 'owner/repo' for OIDC trust relationship"
+  type        = string
+}
