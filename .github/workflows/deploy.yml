@@ -1,19 +1,19 @@
 name: Deploy to AWS
 
 on:
-#   workflow_dispatch:
-#     inputs:
-#       environment:
-#         description: "Environment to deploy"
-#         required: true
-#         default: dev
-#         type: choice
-#         options:
-#           - dev
-#           - prod
-  push:
-    branches:
-      - feature/gcc-6   
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment to deploy"
+        required: true
+        default: dev
+        type: choice
+        options:
+          - dev
+          - prod
+#   push:
+#     branches:
+#       - feature/gcc-6   
 
 permissions:
   id-token: write
