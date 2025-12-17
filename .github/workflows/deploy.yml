@@ -11,7 +11,10 @@ on:
         options:
           - dev
           - prod
-
+  push:
+    branches:
+      - feature/gcc-6   
+         
 permissions:
   id-token: write
   contents: read
