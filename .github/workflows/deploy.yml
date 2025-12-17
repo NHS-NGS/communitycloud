@@ -14,7 +14,7 @@ on:
   push:
     branches:
       - feature/gcc-6   
-         
+
 permissions:
   id-token: write
   contents: read
@@ -22,6 +22,7 @@ permissions:
 jobs:
   upload-vcf:
     runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment }}
 
     steps:
       - name: Checkout
