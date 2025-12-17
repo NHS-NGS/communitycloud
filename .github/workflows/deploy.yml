@@ -1,0 +1,27 @@
+name: Deploy to AWS
+
+on:
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  upload-vcf:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/gms-dev-account-github-actions
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Upload VCF files to raw variants bucket
+        run: |
+          aws s3 sync test-data/vcf \
+            s3://gms-raw-variants/vcf
