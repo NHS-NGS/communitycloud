@@ -1,0 +1,85 @@
+name: Deploy Lambda
+
+on:
+    workflow_dispatch:
+        inputs:
+            lambda_name:
+                description: "Lambda function name (folder name in lambda/)"
+                required: true
+                type: choice
+                options:
+                    - etl-vcf
+            environment:
+                description: "Environment to deploy"
+                required: true
+                default: "dev"
+                type: choice
+                options:
+                    - dev
+            deploy_lambda:
+                description: "Update Lambda function with new code"
+                required: false
+                type: boolean
+                default: false
+
+permissions:
+    id-token: write
+    contents: read
+
+jobs:
+    package-and-upload:
+        runs-on: ubuntu-latest
+        environment: ${{ github.event.inputs.environment }}
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Configure AWS credentials
+              uses: aws-actions/configure-aws-credentials@v4
+              with:
+                  role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/gms-${{ github.event.inputs.environment }}-account-github-actions
+                  aws-region: ${{ secrets.AWS_REGION }}
+
+            - name: Setup Python
+              uses: actions/setup-python@v5
+              with:
+                  python-version: "3.11"
+
+            - name: Install dependencies
+              run: |
+                  cd lambda/${{ github.event.inputs.lambda_name }}
+                  if [ -f requirements.txt ]; then
+                    pip install -r requirements.txt -t .
+                  fi
+
+            - name: Package Lambda
+              run: |
+                  cd lambda/${{ github.event.inputs.lambda_name }}
+                  zip -r lambda_function.zip .
+                  echo "Package created: $(ls -lh lambda_function.zip)"
+
+            - name: Upload to S3
+              run: |
+                  BUCKET="${{ vars.PROJECT }}-${{ secrets.AWS_ACCOUNT_ID }}-${{ github.event.inputs.environment }}-account-lambda-code"
+                  S3_KEY="${{ github.event.inputs.lambda_name }}/lambda_function.zip"
+
+                  aws s3 cp \
+                    lambda/${{ github.event.inputs.lambda_name }}/lambda_function.zip \
+                    s3://${BUCKET}/${S3_KEY}
+
+                  echo "Uploaded to s3://${BUCKET}/${S3_KEY}"
+                  echo "BUCKET=${BUCKET}" >> $GITHUB_ENV
+                  echo "S3_KEY=${S3_KEY}" >> $GITHUB_ENV
+
+            - name: Deploy Lambda
+              if: ${{ github.event.inputs.deploy_lambda == 'true' }}
+              run: |
+                  FUNCTION_NAME="${{ vars.PROJECT }}-${{ github.event.inputs.environment }}-vcf_etl-${{ github.event.inputs.lambda_name }}"
+
+                  aws lambda update-function-code \
+                    --function-name ${FUNCTION_NAME} \
+                    --s3-bucket ${BUCKET} \
+                    --s3-key ${S3_KEY}
+
+                  echo "Lambda ${FUNCTION_NAME} updated with new code"
