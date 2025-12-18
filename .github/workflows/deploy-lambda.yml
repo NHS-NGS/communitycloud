@@ -62,7 +62,7 @@ jobs:
       - name: Upload to S3
         run: |
           BUCKET="${{ vars.PROJECT }}-${{ secrets.AWS_ACCOUNT_ID }}-${{ github.event.inputs.environment }}-account-functions-code"
-          S3_KEY="${{ github.event.inputs.lambda_name }}/lambda_function.zip"
+          S3_KEY="lambda/${{ github.event.inputs.lambda_name }}/lambda_function.zip"
 
           aws s3 cp \
             lambda/${{ github.event.inputs.lambda_name }}/lambda_function.zip \
