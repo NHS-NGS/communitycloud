@@ -16,14 +16,14 @@ resource "aws_glue_job" "vcf_etl" {
   }
 
   default_arguments = {
-    "--job-bookmark-option"                                  = "job-bookmark-enable"
-    "--enable-glue-datacatalog"                              = "true"
-    "--datalake-formats"                                     = "iceberg"
-    "--conf"                                                 = "spark.sql.catalog.s3tablescatalog=org.apache.iceberg.spark.SparkCatalog --conf spark.sql.catalog.s3tablescatalog.catalog-impl=software.amazon.s3tables.iceberg.S3TablesCatalog --conf spark.sql.catalog.s3tablescatalog.warehouse=${aws_s3tables_table_bucket.processed_variants.arn} --conf spark.sql.extensions=org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions"
-    "--RAW_BUCKET"                                           = module.raw_variants_s3_bucket.s3_bucket_id
-    "--S3_TABLE_BUCKET"                                      = aws_s3tables_table_bucket.processed_variants.arn
-    "--S3_TABLE_NAMESPACE"                                   = aws_s3tables_namespace.vcf_data.namespace
-    "--S3_TABLE_NAME"                                        = aws_s3tables_table.processed_variants.name
+    "--job-bookmark-option"     = "job-bookmark-enable"
+    "--enable-glue-datacatalog" = "true"
+    "--datalake-formats"        = "iceberg"
+    "--conf"                    = "spark.sql.catalog.s3tablescatalog=org.apache.iceberg.spark.SparkCatalog --conf spark.sql.catalog.s3tablescatalog.catalog-impl=software.amazon.s3tables.iceberg.S3TablesCatalog --conf spark.sql.catalog.s3tablescatalog.warehouse=${aws_s3tables_table_bucket.processed_variants.arn} --conf spark.sql.extensions=org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions"
+    "--RAW_BUCKET"              = module.raw_variants_s3_bucket.s3_bucket_id
+    "--S3_TABLE_BUCKET"         = aws_s3tables_table_bucket.processed_variants.arn
+    "--S3_TABLE_NAMESPACE"      = aws_s3tables_namespace.vcf_data.namespace
+    "--S3_TABLE_NAME"           = aws_s3tables_table.processed_variants.name
   }
 
   timeout           = var.glue_timeout

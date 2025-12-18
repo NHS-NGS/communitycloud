@@ -1,0 +1,48 @@
+name: Deploy Glue Script
+
+on:
+    workflow_dispatch:
+        inputs:
+            glue_script:
+                description: "Glue script name (folder name in glue/)"
+                required: true
+                type: choice
+                options:
+                    - vcf-etl-iceberg
+            environment:
+                description: "Environment to deploy"
+                required: true
+                default: "dev"
+                type: choice
+                options:
+                    - dev
+
+permissions:
+    id-token: write
+    contents: read
+
+jobs:
+    upload-glue-script:
+        runs-on: ubuntu-latest
+        environment: ${{ github.event.inputs.environment }}
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Configure AWS credentials
+              uses: aws-actions/configure-aws-credentials@v4
+              with:
+                  role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/gms-${{ github.event.inputs.environment }}-account-github-actions
+                  aws-region: ${{ secrets.AWS_REGION }}
+
+            - name: Upload Glue script to S3
+              run: |
+                  BUCKET="${{ vars.PROJECT }}-${{ secrets.AWS_ACCOUNT_ID }}-${{ github.event.inputs.environment }}-account-functions-code"
+                  S3_KEY="glue/${{ github.event.inputs.glue_script }}/${{ github.event.inputs.glue_script }}.py"
+
+                  aws s3 cp \
+                    glue/${{ github.event.inputs.glue_script }}/${{ github.event.inputs.glue_script }}.py \
+                    s3://${BUCKET}/${S3_KEY}
+
+                  echo "Uploaded to s3://${BUCKET}/${S3_KEY}"
