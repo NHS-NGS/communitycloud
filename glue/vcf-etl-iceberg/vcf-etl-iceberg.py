@@ -139,3 +139,4 @@ variant_samples_df.writeTo(VARIANT_SAMPLES_TABLE) \
     .createOrReplace()
     
 print("VCF → Iceberg ingestion completed successfully")
+
