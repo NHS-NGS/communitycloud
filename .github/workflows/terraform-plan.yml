@@ -30,7 +30,6 @@ jobs:
 
     env:
       COMPONENT: ${{ github.event.inputs.component }}
-      AWS_GLOBAL_LEVEL_ID: ${{ vars.AWS_GLOBAL_LEVEL_ID }}
 
     steps:
       - name: Checkout

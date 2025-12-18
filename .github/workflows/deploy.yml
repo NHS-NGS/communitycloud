@@ -1,9 +1,6 @@
 name: Deploy to AWS
 
-on:
-  pull_request_target:
-    branches: 
-      - main
+on: 
   workflow_dispatch:
     inputs:      
       environment: 
