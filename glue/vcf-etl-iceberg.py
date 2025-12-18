@@ -5,7 +5,6 @@ from pyspark.sql import functions as F
 from pyspark.sql.types import *
 import uuid
 import sys
-import os
 
 
 # -------------------------------------------------------------------
@@ -37,21 +36,24 @@ sample_names = header_line.split("\t")[9:]
 
 # Data rows
 data_df = raw_df.filter(~F.col("value").startswith("#"))
+data_df = raw_df.filter(F.size(F.split(F.col("value"), "\t")) >= 9)
 
-fields = F.split(F.col("value"), "\t")
+split_col = F.split(F.col("value"), "\t")
 
 vcf_df = data_df.select(
-    fields[0].alias("chrom"),
-    fields[1].cast("long").alias("pos"),
-    fields[2].alias("vcf_id"),
-    fields[3].alias("ref"),
-    fields[4].alias("alt"),
-    fields[5].cast("double").alias("qual"),
-    fields[6].alias("filter"),
-    fields[7].alias("info"),
-    fields[8].alias("format"),
-    F.expr("slice(fields, 10, size(fields))").alias("sample_values")
+    split_col.getItem(0).alias("chrom"),
+    F.expr("try_cast(split(value, '\t')[1] as bigint)").alias("pos"),  # safe cast
+    split_col.getItem(2).alias("vcf_id"),
+    split_col.getItem(3).alias("ref"),
+    split_col.getItem(4).alias("alt"),
+    F.expr("try_cast(split(value, '\t')[5] as double)").alias("qual"),
+    split_col.getItem(6).alias("filter"),
+    split_col.getItem(7).alias("info"),
+    split_col.getItem(8).alias("format"),
+    F.slice(split_col, 9, F.size(split_col)-9).alias("sample_values")
 )
+
+vcf_df = vcf_df.filter(F.col("pos").isNotNull())
 
 # -------------------------------------------------------------------
 # Generate deterministic variant_id (important!)
@@ -78,9 +80,11 @@ variants_df = vcf_df.select(
     "filter"
 )
 
-variants_df.writeTo(VARIANTS_TABLE) \
-    .partitionedBy("chrom") \
-    .append()
+# variants_df.writeTo(VARIANTS_TABLE) \
+#     .partitionedBy("chrom") \
+#     .append()
+
+variants_df.write.mode("overwrite").parquet(VARIANTS_TABLE)
 
 # -------------------------------------------------------------------
 # SAMPLES TABLE
@@ -91,8 +95,8 @@ samples_df = spark.createDataFrame(
     ["sample_id", "sample_name"]
 )
 
-samples_df.writeTo(SAMPLES_TABLE).append()
-
+# samples_df.writeTo(SAMPLES_TABLE).append()
+samples_df.write.mode("overwrite").parquet(SAMPLES_TABLE)
 # Broadcast sample mapping
 sample_map = {row.sample_name: row.sample_id for row in samples_df.collect()}
 broadcast_samples = spark.sparkContext.broadcast(sample_map)
@@ -100,15 +104,22 @@ broadcast_samples = spark.sparkContext.broadcast(sample_map)
 # -------------------------------------------------------------------
 # VARIANT_SAMPLES TABLE
 # -------------------------------------------------------------------
-exploded_df = vcf_df \
-    .withColumn("sample", F.posexplode("sample_values")) \
-    .withColumn("sample_name", F.expr(f"array({','.join([repr(s) for s in sample_names])})[sample.pos]")) \
-    .withColumn("sample_id", F.udf(lambda s: broadcast_samples.value[s], StringType())("sample_name"))
+exploded_df = vcf_df.select(
+    "*",
+    F.posexplode("sample_values").alias("sample_pos", "sample_val")
+).withColumn(
+    "sample_name",
+    F.expr(f"array({','.join([repr(s) for s in sample_names])})[sample_pos]")
+).withColumn(
+    "sample_id",
+    F.udf(lambda s: broadcast_samples.value[s], StringType())("sample_name")
+)
+
 
 variant_samples_df = exploded_df.select(
     "variant_id",
     "sample_id",
-    F.split("sample.col", ":")[0].alias("genotype"),
+    F.expr("split(sample_val, ':', -1)[0]").alias("genotype"),
     F.expr("str_to_map(info, ';', '=')").alias("attributes"),
     F.lit(False).alias("is_reference_block")
 )
@@ -119,7 +130,8 @@ variant_samples_df = variant_samples_df.withColumn(
     F.pmod(F.hash("variant_id"), F.lit(32))
 )
 
-variant_samples_df.writeTo(VARIANT_SAMPLES_TABLE) \
-    .append()
+# variant_samples_df.writeTo(VARIANT_SAMPLES_TABLE) \
+#     .append()
 
+variant_samples_df.write.mode("overwrite").parquet(VARIANT_SAMPLES_TABLE)
 print("VCF → Iceberg ingestion completed successfully")
