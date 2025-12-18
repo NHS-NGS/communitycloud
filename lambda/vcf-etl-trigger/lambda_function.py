@@ -4,8 +4,8 @@ import os
 
 glue_client = boto3.client('glue')
 
-RAW_BUCKET = os.environ.get('RAW_BUCKET')
-PROCESSED_BUCKET = os.environ.get('PROCESSED_BUCKET')
+VCF_INPUT_PATH = os.environ.get('VCF_INPUT_PATH')
+TABLE_BUCKET_ARN = os.environ.get('TABLE_BUCKET_ARN')
 GLUE_JOB_NAME = os.environ.get('GLUE_JOB_NAME')
 
 
@@ -23,7 +23,8 @@ def lambda_handler(event, context):
         response = glue_client.start_job_run(
             JobName=GLUE_JOB_NAME,
             Arguments={
-                '--input_file': f's3://{bucket}/{key}',
+                "--VCF_INPUT_PATH": VCF_INPUT_PATH,
+                "--TABLE_BUCKET_ARN": TABLE_BUCKET_ARN
             }
         )
         
