@@ -1,8 +1,12 @@
 from pyspark.context import SparkContext
 from awsglue.context import GlueContext
+from awsglue.job import getResolvedOptions
 from pyspark.sql import functions as F
 from pyspark.sql.types import *
 import uuid
+import sys
+import os
+
 
 # -------------------------------------------------------------------
 # Glue Context
@@ -11,11 +15,12 @@ sc = SparkContext()
 glueContext = GlueContext(sc)
 spark = glueContext.spark_session
 
+args = getResolvedOptions(sys.argv, ["VCF_INPUT_PATH", "TABLE_BUCKET_ARN"])
 # -------------------------------------------------------------------
 # Constants
 # -------------------------------------------------------------------
-VCF_INPUT_PATH = "s3://gms-raw-variants/vcf/"
-TABLE_BASE = "s3tables.`TABLE_BUCKET_ARN`.vcf_data"
+VCF_INPUT_PATH = args["VCF_INPUT_PATH"]
+TABLE_BASE = "s3tables.`{args[TABLE_BUCKET_ARN]}`.vcf_data"
 
 VARIANTS_TABLE = f"{TABLE_BASE}.variants"
 SAMPLES_TABLE = f"{TABLE_BASE}.samples"
