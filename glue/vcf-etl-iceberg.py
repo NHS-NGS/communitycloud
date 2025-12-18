@@ -2,7 +2,7 @@ from pyspark.context import SparkContext
 from awsglue.context import GlueContext
 from awsglue.job import getResolvedOptions
 from pyspark.sql import functions as F
-from pyspark.sql.types import *
+from pyspark.sql.types import StructType, StructField, StringType, IntegerType, DoubleType
 import uuid
 import sys
 
