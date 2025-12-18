@@ -1,4 +1,4 @@
-name: Deploy to AWS
+name: Upload and run ETL process on VCF files
 
 on: 
   workflow_dispatch:
