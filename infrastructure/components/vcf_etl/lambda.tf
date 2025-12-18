@@ -8,11 +8,11 @@ resource "aws_lambda_function" "etl_vcf" {
   memory_size   = var.lambda_memory
 
   s3_bucket = data.terraform_remote_state.account.outputs.functions_code_s3_bucket_name
-  s3_key    = "vcf-etl-trigger/lambda_function.zip"
+  s3_key    = "lambda/vcf-etl-trigger/lambda_function.zip"
 
   environment {
     variables = {
-      VCF_INPUT_PATH   = "s3://gms-raw-variants/vcf/"
+      VCF_INPUT_FILE   = "s3://${module.raw_variants_s3_bucket.s3_bucket_id}/vcf/1000genomes_1.vcf"
       TABLE_BUCKET_ARN = aws_s3tables_table.processed_variants.arn
       GLUE_JOB_NAME    = aws_glue_job.vcf_etl.name
     }
