@@ -80,11 +80,9 @@ variants_df = vcf_df.select(
     "filter"
 )
 
-# variants_df.writeTo(VARIANTS_TABLE) \
-#     .partitionedBy("chrom") \
-#     .append()
-
-variants_df.write.mode("overwrite").parquet(VARIANTS_TABLE)
+variants_df.writeTo(VARIANTS_TABLE) \
+    .partitionedBy("chrom") \
+    .append()
 
 # -------------------------------------------------------------------
 # SAMPLES TABLE
@@ -95,8 +93,7 @@ samples_df = spark.createDataFrame(
     ["sample_id", "sample_name"]
 )
 
-# samples_df.writeTo(SAMPLES_TABLE).append()
-samples_df.write.mode("overwrite").parquet(SAMPLES_TABLE)
+samples_df.writeTo(SAMPLES_TABLE).append()
 # Broadcast sample mapping
 sample_map = {row.sample_name: row.sample_id for row in samples_df.collect()}
 broadcast_samples = spark.sparkContext.broadcast(sample_map)
@@ -129,9 +126,6 @@ variant_samples_df = variant_samples_df.withColumn(
     "variant_id_bucket",
     F.pmod(F.hash("variant_id"), F.lit(32))
 )
-
-# variant_samples_df.writeTo(VARIANT_SAMPLES_TABLE) \
-#     .append()
 
 variant_samples_df.write.mode("overwrite").parquet(VARIANT_SAMPLES_TABLE)
 print("VCF → Iceberg ingestion completed successfully")
