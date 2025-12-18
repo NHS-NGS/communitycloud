@@ -11,7 +11,7 @@ resource "aws_glue_job" "vcf_etl" {
 
   command {
     name            = "glueetl"
-    script_location = "s3://${data.terraform_remote_state.account.outputs.functions_code_s3_bucket_name}/glue/vcf-etl-iceberg.py"
+    script_location = "s3://${data.terraform_remote_state.account.outputs.functions_code_s3_bucket_name}/glue/vcf-etl-iceberg/vcf-etl-iceberg.py"
     python_version  = "3"
   }
 
