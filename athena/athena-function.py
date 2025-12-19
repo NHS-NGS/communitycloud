@@ -19,7 +19,7 @@ TABLE_LOCATION = f"{TABLE_BUCKET_ARN}/{TABLE_NAME}"
 athena_client = boto3.client('athena')
 
 
-def run_athena_query(query, database=None):
+def run_athena_query_to_df(query, database=None):
     response = athena_client.start_query_execution(
         QueryString=query,
         QueryExecutionContext={'Database': database} if database else {},
@@ -28,7 +28,7 @@ def run_athena_query(query, database=None):
     
     query_execution_id = response['QueryExecutionId']
     
-    
+   
     while True:
         status = athena_client.get_query_execution(QueryExecutionId=query_execution_id)
         state = status['QueryExecution']['Status']['State']
@@ -39,15 +39,16 @@ def run_athena_query(query, database=None):
     if state != 'SUCCEEDED':
         raise Exception(f"Athena query failed: {state}")
     
+   
+    result_location = status['QueryExecution']['ResultConfiguration']['OutputLocation']
     
-    results = athena_client.get_query_results(QueryExecutionId=query_execution_id)
-    return results
+   
+    df = pd.read_csv(result_location)
+    return df
 
 
-create_db_query = f"""
-CREATE DATABASE IF NOT EXISTS {DATABASE_NAME}
-"""
-run_athena_query(create_db_query)
+create_db_query = f"CREATE DATABASE IF NOT EXISTS {DATABASE_NAME}"
+run_athena_query_to_df(create_db_query)
 print(f"Database '{DATABASE_NAME}' created or already exists.")
 
 
@@ -65,7 +66,7 @@ CREATE TABLE IF NOT EXISTS {DATABASE_NAME}.{TABLE_NAME} (
 USING ICEBERG
 LOCATION '{TABLE_LOCATION}'
 """
-run_athena_query(create_table_query, database=DATABASE_NAME)
+run_athena_query_to_df(create_table_query, database=DATABASE_NAME)
 print(f"Table '{TABLE_NAME}' created or already exists in database '{DATABASE_NAME}'.")
 
 
@@ -75,17 +76,6 @@ FROM {TABLE_NAME}
 WHERE chrom = '1'
 LIMIT 10
 """
-results = run_athena_query(select_query, database=DATABASE_NAME)
-
-
-columns = [col['VarCharValue'] for col in results['ResultSet']['Rows'][0]['Data']]
-
-
-rows = []
-for row in results['ResultSet']['Rows'][1:]:
-    rows.append([col.get('VarCharValue', None) for col in row['Data']])
-
-
-df = pd.DataFrame(rows, columns=columns)
+df = run_athena_query_to_df(select_query, database=DATABASE_NAME)
 print("Query results:")
 print(df)
