@@ -93,25 +93,27 @@ resource "aws_iam_role_policy_attachment" "glue_service_role" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole"
 }
 
-# resource "aws_iam_role_policy" "glue_s3_access" {
-#   name   = "${local.aws_account_level_id}-glue-s3"
-#   role   = aws_iam_role.glue_execution.id
-#   policy = data.aws_iam_policy_document.glue_s3_access.json
-# }
+resource "aws_iam_role_policy" "glue_s3_access" {
+  name   = "${local.aws_account_level_id}-glue-s3"
+  role   = aws_iam_role.glue_execution.id
+  policy = data.aws_iam_policy_document.glue_s3_access.json
+}
 
-# data "aws_iam_policy_document" "glue_s3_access" {
-#   statement {
-#     actions = [
-#       "s3:GetObject",
-#       "s3:ListBucket",
-#     ]
+data "aws_iam_policy_document" "glue_s3_access" {
+  statement {
+    actions = [
+      "s3:GetObject",
+      "s3:ListBucket",
+    ]
 
-#     resources = [
-#       module.raw_variants_s3_bucket.s3_bucket_arn,
-#       "${module.raw_variants_s3_bucket.s3_bucket_arn}/*",
-#     ]
-#   }
-# }
+    resources = [
+      module.raw_variants_s3_bucket.s3_bucket_arn,
+      "${module.raw_variants_s3_bucket.s3_bucket_arn}/*",
+      data.terraform_remote_state.account.outputs.functions_code_s3_bucket_arn,
+      "${data.terraform_remote_state.account.outputs.functions_code_s3_bucket_arn}/*",
+    ]
+  }
+}
 
 # Policy for S3 Tables access
 resource "aws_iam_role_policy" "glue_s3tables_access" {
@@ -128,6 +130,9 @@ data "aws_iam_policy_document" "glue_s3tables_access" {
       "s3tables:GetNamespace",
       "s3tables:PutTableData",
       "s3tables:GetTableData",
+      "s3tables:GetTableMetadataLocation",
+      "s3tables:CreateTable",
+      "s3tables:UpdateTableMetadataLocation",
     ]
 
     resources = [
