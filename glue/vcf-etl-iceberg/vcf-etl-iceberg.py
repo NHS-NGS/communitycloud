@@ -1,6 +1,6 @@
 from pyspark.context import SparkContext
 from awsglue.context import GlueContext
-from awsglue.job import getResolvedOptions
+from awsglue.utils import getResolvedOptions
 from pyspark.sql import functions as F
 from pyspark.sql.types import StructType, StructField, StringType, IntegerType, DoubleType
 import uuid
@@ -14,12 +14,15 @@ sc = SparkContext()
 glueContext = GlueContext(sc)
 spark = glueContext.spark_session
 
-args = getResolvedOptions(sys.argv, ["VCF_INPUT_PATH", "TABLE_BUCKET_ARN"])
+args = getResolvedOptions(sys.argv, ["VCF_INPUT_FILE", "TABLE_BUCKET_ARN"])
 # -------------------------------------------------------------------
 # Constants
 # -------------------------------------------------------------------
-VCF_INPUT_PATH = args["VCF_INPUT_PATH"]
-TABLE_BASE = "s3tables.`{args[TABLE_BUCKET_ARN]}`.vcf_data"
+VCF_INPUT_PATH = args["VCF_INPUT_FILE"]
+TABLE_BUCKET_ARN = args["TABLE_BUCKET_ARN"]
+
+CATALOG_NAME = "s3tables"
+TABLE_BASE = f"{CATALOG_NAME}.vcf_data"
 
 VARIANTS_TABLE = f"{TABLE_BASE}.variants"
 SAMPLES_TABLE = f"{TABLE_BASE}.samples"
@@ -81,8 +84,9 @@ variants_df = vcf_df.select(
 )
 
 variants_df.writeTo(VARIANTS_TABLE) \
+    .tableProperty("format-version", "2") \
     .partitionedBy("chrom") \
-    .append()
+    .createOrReplace()
 
 # -------------------------------------------------------------------
 # SAMPLES TABLE
@@ -93,7 +97,10 @@ samples_df = spark.createDataFrame(
     ["sample_id", "sample_name"]
 )
 
-samples_df.writeTo(SAMPLES_TABLE).append()
+samples_df.writeTo(SAMPLES_TABLE) \
+    .tableProperty("format-version", "2") \
+    .createOrReplace()
+
 # Broadcast sample mapping
 sample_map = {row.sample_name: row.sample_id for row in samples_df.collect()}
 broadcast_samples = spark.sparkContext.broadcast(sample_map)
@@ -127,5 +134,8 @@ variant_samples_df = variant_samples_df.withColumn(
     F.pmod(F.hash("variant_id"), F.lit(32))
 )
 
-variant_samples_df.write.mode("overwrite").parquet(VARIANT_SAMPLES_TABLE)
+variant_samples_df.writeTo(VARIANT_SAMPLES_TABLE) \
+    .tableProperty("format-version", "2") \
+    .createOrReplace()
+    
 print("VCF → Iceberg ingestion completed successfully")
