@@ -1,14 +1,23 @@
 import boto3
 import time
 import pandas as pd
+import os
 
-REGION = 'eu-west-2'  # AWS region
-QUERY_OUTPUT_BUCKET = 's3://your-athena-query-results/'  # must exist
+
+QUERY_OUTPUT_BUCKET = 's3://your-athena-query-results/'  
 DATABASE_NAME = 'vcf_data'
 TABLE_NAME = 'variants'
-TABLE_LOCATION = 's3://gms-processed-variants/variants'
 
-athena_client = boto3.client('athena', region_name=REGION)
+
+TABLE_BUCKET_ARN = os.environ.get('TABLE_BUCKET_ARN')
+if not TABLE_BUCKET_ARN:
+    raise ValueError("Environment variable TABLE_BUCKET_ARN is not set.")
+
+TABLE_LOCATION = f"{TABLE_BUCKET_ARN}/{TABLE_NAME}"
+
+
+athena_client = boto3.client('athena')
+
 
 def run_athena_query(query, database=None):
     response = athena_client.start_query_execution(
@@ -30,7 +39,7 @@ def run_athena_query(query, database=None):
     if state != 'SUCCEEDED':
         raise Exception(f"Athena query failed: {state}")
     
-   
+    
     results = athena_client.get_query_results(QueryExecutionId=query_execution_id)
     return results
 
@@ -71,12 +80,12 @@ results = run_athena_query(select_query, database=DATABASE_NAME)
 
 columns = [col['VarCharValue'] for col in results['ResultSet']['Rows'][0]['Data']]
 
-# Extract rows
+
 rows = []
 for row in results['ResultSet']['Rows'][1:]:
     rows.append([col.get('VarCharValue', None) for col in row['Data']])
 
-# Create DataFrame
+
 df = pd.DataFrame(rows, columns=columns)
 print("Query results:")
 print(df)
