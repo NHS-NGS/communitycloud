@@ -13,7 +13,7 @@ resource "aws_lambda_function" "etl_vcf" {
   environment {
     variables = {
       VCF_INPUT_FILE   = "s3://${module.raw_variants_s3_bucket.s3_bucket_id}/vcf/1000genomes_1.vcf"
-      TABLE_BUCKET_ARN = aws_s3tables_table.processed_variants.arn
+      TABLE_BUCKET_ARN = aws_s3tables_table_bucket.processed_variants.arn
       GLUE_JOB_NAME    = aws_glue_job.vcf_etl.name
     }
   }
